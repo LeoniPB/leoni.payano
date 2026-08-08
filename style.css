@@ -136,7 +136,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 36px;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  color: var(--text-black);
+  color: #000;
 }
 
 .feature-caption {
@@ -144,7 +144,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 18px;
   letter-spacing: -0.005em;
   line-height: 1.45;
-  color: var(--text-black);
+  color: #000;
 }
 
 .feature-image {
@@ -239,7 +239,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 48px;
   letter-spacing: -0.025em;
   line-height: 1.1;
-  color: var(--text-black);
+  color: #000;
 }
 
 .about-roles {
@@ -248,7 +248,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 20px;
   letter-spacing: -0.005em;
   line-height: 1.45;
-  color: var(--text-black);
+  color: #000;
   white-space: pre-line;
 }
 
@@ -298,7 +298,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 24px;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  color: var(--text-black);
+  color: #000;
 }
 
 .about-text {
@@ -306,7 +306,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 17px;
   letter-spacing: -0.005em;
   line-height: 1.45;
-  color: var(--text-black);
+  color: #000;
   white-space: pre-line;
 }
 
@@ -327,7 +327,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 64px;
   letter-spacing: -0.025em;
   line-height: 1.1;
-  color: var(--text-black);
+  color: #000;
 }
 
 .projects-section {
@@ -345,7 +345,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 24px;
   letter-spacing: -0.02em;
   line-height: 1.4;
-  color: var(--text-black);
+  color: #000;
 }
 
 .project-entry {
@@ -367,7 +367,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 18px;
   letter-spacing: -0.005em;
   line-height: 1.45;
-  color: var(--text-black);
+  color: #000;
 }
 
 .project-image-text {
@@ -391,7 +391,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 18px;
   letter-spacing: -0.005em;
   line-height: 1.45;
-  color: var(--text-black);
+  color: #000;
 }
 
 .project-desc {
@@ -399,7 +399,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 18px;
   letter-spacing: -0.005em;
   line-height: 1.45;
-  color: var(--text-black);
+  color: #000;
 }
 
 .project-image-text img {

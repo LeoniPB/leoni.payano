@@ -80,7 +80,7 @@ a { text-decoration: none; color: inherit; }
   font-size: 64px;
   letter-spacing: -0.025em;
   line-height: 1.1;
-  color: var(--text-black);
+  color: #000;
 }
 
 .hero-intro {

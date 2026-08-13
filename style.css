@@ -410,7 +410,7 @@ a { text-decoration: none; color: inherit; }
   aspect-ratio: 16 / 9.5;
 }
 
-/* ---------- Responsive ---------- */
+/* ---------- Responsive ----------- */
 
 @media (max-width: 900px) {
   .hero { padding: 80px 24px; }

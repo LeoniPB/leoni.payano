@@ -418,15 +418,14 @@ a { text-decoration: none; color: inherit; }
   .hero-intro { font-size: 18px; }
   .feature-row { flex-direction: column; padding: 40px 0; gap: 32px; }
   .feature-content, .feature-image { width: 100%; }
+  .feature-image img { max-width: 400px; margin: 0 auto; }   /* ← new line */
   .feature-title { font-size: 28px; }
   .footer { padding: 40px 24px; }
-
   .about-header { padding: 60px 24px; }
   .about-photo-wrap { padding: 0 24px 24px; }
   .about-body-wrap { padding: 40px 24px; }
   .about-title { font-size: 32px; }
   .about-roles { font-size: 16px; }
-
   .projects-header { padding: 80px 24px 40px; }
   .projects-section { padding: 40px 24px; }
   .projects-title { font-size: 42px; }

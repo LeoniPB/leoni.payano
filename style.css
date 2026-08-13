@@ -415,12 +415,21 @@ a { text-decoration: none; color: inherit; }
 @media (max-width: 900px) {
   .hero { padding: 80px 24px; }
   .hero-title { font-size: 42px; }
+  .hero-intro { font-size: 18px; }
   .feature-row { flex-direction: column; padding: 40px 0; gap: 32px; }
   .feature-content, .feature-image { width: 100%; }
+  .feature-title { font-size: 28px; }
   .footer { padding: 40px 24px; }
-  .about-header, .about-photo-wrap, .about-body-wrap { padding-left: 24px; padding-right: 24px; }
+
+  .about-header { padding: 60px 24px; }
+  .about-photo-wrap { padding: 0 24px 24px; }
+  .about-body-wrap { padding: 40px 24px; }
   .about-title { font-size: 32px; }
-  .projects-header, .projects-section { padding-left: 24px; padding-right: 24px; }
+  .about-roles { font-size: 16px; }
+
+  .projects-header { padding: 80px 24px 40px; }
+  .projects-section { padding: 40px 24px; }
   .projects-title { font-size: 42px; }
-  .project-entry { width: 100%; }
+  .project-entry { width: 100%; flex-direction: column; gap: 12px; }
+  .project-text-block { min-width: 0; }
 }

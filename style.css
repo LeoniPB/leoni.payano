@@ -306,8 +306,9 @@ a { text-decoration: none; color: inherit; }
   font-size: 17px;
   letter-spacing: -0.005em;
   line-height: 1.45;
-  color: #000;
+  color: var(--text-black);
   white-space: pre-line;
+  text-align: justify;
 }
 
 /* ---------- Projects page ---------- */

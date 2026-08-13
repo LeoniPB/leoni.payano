@@ -419,7 +419,13 @@ a { text-decoration: none; color: inherit; }
   .hero-intro { font-size: 18px; }
   .feature-row { flex-direction: column; padding: 40px 0; gap: 32px; }
   .feature-content, .feature-image { width: 100%; }
-  .feature-image img { max-width: 400px; margin: 0 auto; }
+  .feature-row.row-1 .feature-image img,
+  .feature-row.row-2 .feature-image img {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    display: block;
+  }
   .feature-title { font-size: 28px; }
   .footer { padding: 40px 24px; }
   .about-header { padding: 60px 24px; }

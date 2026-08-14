@@ -1,4 +1,4 @@
 
-&nbsp; About me
- /> &nbsp; German-Dominican living in London <br />
- /> &nbsp; LSE & King's graduate<br />
+&nbsp; About me! 
+
+[`leoni.payano`](https://github.com/cocohernandez/code-with-coco/tree/main](https://leonipb.github.io/leonipayano/) 

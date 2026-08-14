@@ -1,4 +1,2 @@
 
-about me! 
-
-my personal website: [`leoni.payano`](https://leonipb.github.io/leonipayano/) 
+about me! [`leoni.payano`](https://leonipb.github.io/leonipayano/) 

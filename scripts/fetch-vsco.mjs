@@ -16,93 +16,77 @@ async function fetchGalleryImages() {
   });
 
   const page = await context.newPage();
-  const imageIds = new Set();
+  const imageUrls = new Set();
 
-  // Intercept all responses and scan for image IDs
+  // Log every JSON response URL and scan for image URLs
   page.on('response', async response => {
+    const url = response.url();
     const ct = response.headers()['content-type'] || '';
-    if (!ct.includes('application/json')) return;
-    try {
-      const text = await response.text();
-      const matches = text.match(/[a-f0-9]{24}/g) || [];
-      // Also look for responsive_url or image paths
-      const urls = text.match(/https?:\/\/img\.vsco\.co\/[^\s"']+/g) || [];
-      urls.forEach(u => imageIds.add(u));
-      // Extract image IDs from any JSON payload
-      const imgPaths = text.match(/"\/images\/([a-f0-9]{24})\.jpg"/g) || [];
-      imgPaths.forEach(p => {
-        const id = p.match(/([a-f0-9]{24})/)?.[1];
-        if (id) imageIds.add(id);
-      });
-    } catch (_) {}
+    if (ct.includes('application/json')) {
+      console.log(`JSON response: ${url}`);
+      try {
+        const text = await response.text();
+        // Look for any vsco image URLs in the response
+        const imgMatches = text.match(/https?:\/\/[^\s"']+vsco[^\s"']*\.(?:jpg|jpeg|png|webp)/gi) || [];
+        const r2Matches = text.match(/https?:\/\/[^\s"']*cloudflarestorage[^\s"']*\.(?:jpg|jpeg|png|webp)[^\s"']*/gi) || [];
+        const imgVscoMatches = text.match(/https?:\/\/img\.vsco\.co\/[^\s"']+/gi) || [];
+
+        [...imgMatches, ...r2Matches, ...imgVscoMatches].forEach(u => {
+          const clean = u.replace(/\\u0026/g, '&').replace(/\\/g, '');
+          imageUrls.add(clean);
+        });
+
+        if (imgMatches.length + r2Matches.length + imgVscoMatches.length > 0) {
+          console.log(`  → Found ${imgMatches.length + r2Matches.length + imgVscoMatches.length} image URLs`);
+          console.log('  Preview:', text.slice(0, 300));
+        }
+      } catch (_) {}
+    }
   });
 
   console.log(`Navigating to ${GALLERY_URL}...`);
   await page.goto(GALLERY_URL, { waitUntil: 'networkidle', timeout: 60000 });
   await page.waitForTimeout(3000);
 
-  // Scroll to trigger loading of all images
-  for (let i = 0; i < 8; i++) {
-    await page.evaluate(() => window.scrollBy(0, window.innerHeight * 1.5));
+  // Scroll to load more
+  for (let i = 0; i < 6; i++) {
+    await page.evaluate(() => window.scrollBy(0, window.innerHeight * 2));
     await page.waitForTimeout(1500);
   }
 
-  // Get all img srcs from the DOM
+  // Also grab all img srcs from DOM
   const domUrls = await page.evaluate(() => {
-    const urls = new Set();
+    const urls = [];
     document.querySelectorAll('img').forEach(img => {
-      if (img.src) urls.add(img.src);
-      if (img.dataset.src) urls.add(img.dataset.src);
-      // Check srcset
-      if (img.srcset) {
-        img.srcset.split(',').forEach(s => {
-          const u = s.trim().split(' ')[0];
-          if (u) urls.add(u);
-        });
-      }
+      if (img.src) urls.push(img.src);
+      if (img.currentSrc) urls.push(img.currentSrc);
     });
-    // Also check picture/source elements
-    document.querySelectorAll('source').forEach(src => {
-      if (src.srcset) {
-        src.srcset.split(',').forEach(s => {
-          const u = s.trim().split(' ')[0];
-          if (u) urls.add(u);
-        });
-      }
-    });
-    return Array.from(urls);
+    return urls;
   });
 
-  console.log(`DOM img URLs found: ${domUrls.length}`);
-  domUrls.forEach(u => console.log('  dom:', u.slice(0, 100)));
+  console.log(`\nDOM images: ${domUrls.length}`);
+  domUrls.forEach(u => {
+    if (u.includes('vsco') || u.includes('cloudflare')) {
+      imageUrls.add(u);
+      console.log(' dom:', u.slice(0, 120));
+    }
+  });
 
   await browser.close();
 
-  // Collect all img.vsco.co URLs
-  const allUrls = [
-    ...domUrls.filter(u => u.includes('img.vsco.co') || u.includes('im.vsco.co') || u.includes('vsco-galleries')),
-    ...Array.from(imageIds).filter(u => u.startsWith('http')),
-  ];
-
-  // Deduplicate by image ID
+  // Deduplicate by image file ID
   const seenIds = new Set();
   const uniqueImages = [];
-  for (const url of allUrls) {
-    const idMatch = url.match(/\/images\/([a-f0-9]{24})\./);
+  for (const url of imageUrls) {
+    const idMatch = url.match(/\/images\/([a-f0-9]{24})/);
     if (idMatch) {
       if (seenIds.has(idMatch[1])) continue;
       seenIds.add(idMatch[1]);
-      // Upgrade to high resolution
-      const highRes = url.includes('cdn-cgi')
-        ? url.replace(/width=\d+,/, 'width=1200,')
-        : url;
-      uniqueImages.push(highRes);
-    } else if (!allUrls.some(other => other !== url && other.includes(url.slice(-20)))) {
-      uniqueImages.push(url);
     }
+    uniqueImages.push(url);
   }
 
-  console.log(`\nUnique images: ${uniqueImages.length}`);
+  console.log(`\nTotal unique images: ${uniqueImages.length}`);
   uniqueImages.forEach(u => console.log(' -', u.slice(0, 120)));
 
   if (uniqueImages.length === 0) {
@@ -113,13 +97,9 @@ async function fetchGalleryImages() {
   const shuffled = [...uniqueImages].sort(() => Math.random() - 0.5);
   const selected = shuffled.slice(0, Math.min(PHOTOS_TO_PICK, shuffled.length));
 
-  const output = {
-    week: new Date().toISOString().split('T')[0],
-    photos: selected,
-  };
-
+  const output = { week: new Date().toISOString().split('T')[0], photos: selected };
   writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
-  console.log(`Saved ${selected.length} photos.`);
+  console.log(`\nSaved ${selected.length} photos.`);
 }
 
 fetchGalleryImages().catch(err => {

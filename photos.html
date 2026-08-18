@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photos — Leoni Payano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .photos-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 120px 240px 64px;
+    width: 100%;
+  }
+
+  .photos-title {
+    font-weight: 700;
+    font-size: 64px;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    color: #000;
+  }
+
+  .photos-subtitle {
+    font-weight: 500;
+    font-size: 18px;
+    letter-spacing: -0.005em;
+    line-height: 1.45;
+    color: var(--text-black);
+  }
+
+  .photos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    padding: 0 240px 120px;
+    width: 100%;
+  }
+
+  .photos-grid img {
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    object-fit: cover;
+    aspect-ratio: 4 / 5;
+    display: block;
+  }
+
+  .photos-grid img:first-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .photos-empty {
+    padding: 0 240px 120px;
+    font-weight: 500;
+    font-size: 18px;
+    color: var(--text-black);
+  }
+
+  @media (max-width: 900px) {
+    .photos-header { padding: 80px 24px 40px; }
+    .photos-title { font-size: 42px; }
+    .photos-grid { grid-template-columns: 1fr; padding: 0 24px 80px; gap: 16px; }
+    .photos-grid img:first-child { grid-column: 1; aspect-ratio: 4 / 5; }
+    .photos-empty { padding: 0 24px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+<div class="container">
+
+  <header class="photos-header">
+    <h1 class="photos-title">Photos</h1>
+    <p class="photos-subtitle">A selection from the week. Changes every Monday.</p>
+  </header>
+
+  <div id="gallery" class="photos-grid"></div>
+
+</div>
+</div>
+
+<script>
+  fetch('featured.json')
+    .then(res => res.json())
+    .then(data => {
+      const gallery = document.getElementById('gallery');
+      if (!data.photos || data.photos.length === 0) {
+        gallery.outerHTML = '<p class="photos-empty">No photos this week yet — check back Monday.</p>';
+        return;
+      }
+      data.photos.forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        img.loading = 'lazy';
+        gallery.appendChild(img);
+      });
+    })
+    .catch(() => {
+      document.getElementById('gallery').outerHTML =
+        '<p class="photos-empty">No photos this week yet — check back Monday.</p>';
+    });
+</script>
+
+</body>
+</html>

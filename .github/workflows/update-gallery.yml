@@ -28,14 +28,6 @@ jobs:
       - name: Fetch VSCO images
         run: node scripts/fetch-vsco.mjs
 
-      - name: Upload debug screenshot
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vsco-debug
-          path: vsco-debug.png
-          if-no-files-found: ignore
-
       - name: Check for changes
         id: diff
         run: |

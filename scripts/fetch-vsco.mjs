@@ -13,22 +13,16 @@ async function fetchVscoImages() {
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
       '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 900 },
-    extraHTTPHeaders: {
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
   });
 
   const page = await context.newPage();
 
-  // Intercept API responses that contain image data
+  // Intercept all API responses
   const imageUrls = new Set();
-
   page.on('response', async response => {
     const url = response.url();
-    if (
-      url.includes('vsco.co/api') &&
-      response.headers()['content-type']?.includes('application/json')
-    ) {
+    const ct = response.headers()['content-type'] || '';
+    if (ct.includes('application/json')) {
       try {
         const body = await response.json();
         extractImages(body, imageUrls);
@@ -38,53 +32,60 @@ async function fetchVscoImages() {
 
   console.log(`Navigating to ${GALLERY_URL}...`);
   await page.goto(GALLERY_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(4000);
 
-  // Scroll to trigger more API calls
+  // Log page title and URL to see if we're being blocked
+  const title = await page.title();
+  const currentUrl = page.url();
+  console.log(`Page title: ${title}`);
+  console.log(`Current URL: ${currentUrl}`);
+
+  // Scroll
   for (let i = 0; i < 5; i++) {
     await page.evaluate(() => window.scrollBy(0, window.innerHeight * 2));
     await page.waitForTimeout(2000);
   }
 
-  // Also scan the DOM for any image URLs we might have missed
+  // Take a screenshot and save as artifact
+  await page.screenshot({ path: 'vsco-debug.png', fullPage: false });
+  console.log('Screenshot saved as vsco-debug.png');
+
+  // Dump ALL img srcs for debugging
+  const allImgs = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('img')).map(i => i.src)
+  );
+  console.log(`Total <img> tags found: ${allImgs.length}`);
+  allImgs.slice(0, 20).forEach(src => console.log('  img:', src));
+
+  // Check __NEXT_DATA__
+  const nextData = await page.evaluate(() => {
+    try {
+      const el = document.getElementById('__NEXT_DATA__');
+      return el ? el.textContent.slice(0, 2000) : null;
+    } catch (_) { return null; }
+  });
+  if (nextData) {
+    console.log('__NEXT_DATA__ found (first 2000 chars):', nextData);
+  } else {
+    console.log('No __NEXT_DATA__ found.');
+  }
+
+  // DOM scan
   const domImages = await page.evaluate(() => {
     const all = [];
     document.querySelectorAll('img').forEach(img => {
       if (img.src) all.push(img.src);
       if (img.dataset.src) all.push(img.dataset.src);
     });
-    document.querySelectorAll('[style]').forEach(el => {
-      const bg = el.style.backgroundImage;
-      if (bg) all.push(bg.replace(/url\(["']?|["']?\)/g, ''));
-    });
     return all;
   });
-
-  domImages.forEach(src => {
-    if (src && isPhotoUrl(src)) imageUrls.add(src);
-  });
-
-  // Also check window.__NEXT_DATA__ which VSCO uses
-  const nextData = await page.evaluate(() => {
-    try {
-      const el = document.getElementById('__NEXT_DATA__');
-      return el ? JSON.parse(el.textContent) : null;
-    } catch (_) {
-      return null;
-    }
-  });
-
-  if (nextData) {
-    extractImages(nextData, imageUrls);
-  }
+  domImages.forEach(src => { if (src && isPhotoUrl(src)) imageUrls.add(src); });
 
   await browser.close();
 
   const images = Array.from(imageUrls);
-  console.log(`Found ${images.length} images.`);
-  if (images.length > 0) {
-    images.slice(0, 10).forEach(u => console.log(' -', u));
-  }
+  console.log(`\nPhoto URLs found after filtering: ${images.length}`);
+  images.forEach(u => console.log(' -', u));
 
   if (images.length === 0) {
     console.warn('No images found — keeping existing featured.json unchanged.');
@@ -93,14 +94,9 @@ async function fetchVscoImages() {
 
   const shuffled = [...images].sort(() => Math.random() - 0.5);
   const selected = shuffled.slice(0, Math.min(PHOTOS_TO_PICK, shuffled.length));
-
-  const output = {
-    week: new Date().toISOString().split('T')[0],
-    photos: selected,
-  };
-
+  const output = { week: new Date().toISOString().split('T')[0], photos: selected };
   writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
-  console.log(`Saved ${selected.length} photos to ${OUTPUT_FILE}.`);
+  console.log(`Saved ${selected.length} photos.`);
 }
 
 function isPhotoUrl(src) {
@@ -118,19 +114,10 @@ function isPhotoUrl(src) {
 
 function extractImages(obj, set, depth = 0) {
   if (depth > 10 || !obj || typeof obj !== 'object') return;
-  if (Array.isArray(obj)) {
-    obj.forEach(item => extractImages(item, set, depth + 1));
-    return;
-  }
-  for (const [key, value] of Object.entries(obj)) {
-    if (
-      typeof value === 'string' &&
-      isPhotoUrl(value)
-    ) {
-      set.add(value);
-    } else if (typeof value === 'object') {
-      extractImages(value, set, depth + 1);
-    }
+  if (Array.isArray(obj)) { obj.forEach(item => extractImages(item, set, depth + 1)); return; }
+  for (const [, value] of Object.entries(obj)) {
+    if (typeof value === 'string' && isPhotoUrl(value)) set.add(value);
+    else if (typeof value === 'object') extractImages(value, set, depth + 1);
   }
 }
 
